@@ -1,0 +1,10 @@
+<panel>
+  <title>Operating System Statistics</title>
+  <table>
+    <search>
+      <query>index="infocyte" sourcetype= "infocytescan" type=Host $dash_scan_tok$ | rename osversion as "Operating System" | stats values(servicepack) as "Service Packs", values(architecture) as Architectures, dc(id) as "Hosts" by "Operating System"</query>
+      <earliest>$dash_time_tok.earliest$</earliest>
+      <latest>$dash_time_tok.latest$</latest>
+    </search>
+  </table>
+</panel>

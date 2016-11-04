@@ -1,0 +1,105 @@
+[app/ui]
+version = 6.4.3
+modtime = 1475180129.843950500
+
+[app/launcher]
+version = 6.4.3
+modtime = 1475180129.932185100
+
+[]
+access = read : [ * ], write : [ * ]
+export = none
+version = 6.4.3
+modtime = 1474901941.081089400
+
+[app/package/check_for_updates]
+version = 6.4.3
+modtime = 1475180129.938702500
+
+[views/home__dashboard]
+access = read : [ * ], write : [ admin, power ]
+export = none
+owner = admin
+version = 6.5.0
+modtime = 1476923520.780964100
+
+[nav/default]
+access = read : [ * ], write : [ * ]
+export = none
+owner = nobody
+version = 6.4.3
+modtime = 1475248089.487863000
+
+[panels/Overview_of_all_searches]
+owner = admin
+version = 6.4.3
+modtime = 1475088283.742233900
+
+[indexes/infocyte]
+owner = admin
+version = 6.5.0
+modtime = 1476814076.278465200
+
+[panels/global_scan_overview]
+owner = admin
+version = 6.5.0
+modtime = 1476834662.018748300
+
+[views/hunt_analytics]
+access = read : [ * ], write : [ admin, can_delete, power, user ]
+export = none
+owner = admin
+version = 6.5.0
+modtime = 1476925076.347306200
+
+[views/hunt_pivots]
+owner = admin
+version = 6.5.0
+modtime = 1476889234.231636400
+
+[savedsearches/Scan%20Result%20w%2F%20Compromise]
+owner = admin
+version = 6.5.0
+modtime = 1476910607.339510100
+
+[savedsearches/Infocyte%20HUNT%20Malware%20Detection]
+owner = admin
+version = 6.5.0
+modtime = 1476921500.498901300
+
+[views/hunt_analysis]
+access = read : [ * ], write : [ admin, power ]
+export = none
+owner = nobody
+version = 6.5.0
+modtime = 1476926087.967347300
+
+[panels/malicious_volatile_memory_injects]
+owner = admin
+version = 6.5.0
+modtime = 1476926815.468311100
+
+[panels/malicious_active_processes_modules__drivers]
+owner = admin
+version = 6.5.0
+modtime = 1476926830.250030200
+
+[panels/operating_system_statistics]
+owner = admin
+version = 6.5.0
+modtime = 1476926915.781935600
+
+[panels/threat_status_distribution_by_scan_id]
+owner = admin
+version = 6.5.0
+modtime = 1476926922.071191300
+
+[panels/scan_summary_report]
+owner = admin
+version = 6.5.0
+modtime = 1476926930.642885900
+
+[panels/target_list_summary_report]
+owner = admin
+version = 6.5.0
+modtime = 1476926939.918973200

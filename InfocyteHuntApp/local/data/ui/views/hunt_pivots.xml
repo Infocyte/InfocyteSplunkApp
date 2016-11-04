@@ -1,0 +1,7 @@
+<dashboard>
+  <label>HUNT Pivots</label>
+  <description>USed to pivot Infocyte HUNT data against other data sources</description>
+  <row>
+    <panel ref="Overview_of_all_searches" app="InfocyteSearchAndReport"></panel>
+  </row>
+</dashboard>
