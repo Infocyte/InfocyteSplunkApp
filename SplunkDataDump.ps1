@@ -1,8 +1,7 @@
 Param(
-	[Parameter(	Position = 0, 
-					Mandatory = $true)]
-	[Int]$Timespace = 7 # Age of new data to pull from HUNT (in days)
-	[String]$OutPath = "C:\Program Files\Infocyte\SplunkData\" # Output
+	[Parameter()]
+	[Int]$Days = 7, # Age of new data to pull from HUNT (in days)
+	[String]$OutPath = "C:\Program Files\Infocyte\SplunkData\" # Output Path of SplunkData json files - this folder should be monitored by a Splunk Forwarder
 )
 
 $psql = "C:\Program Files\Infocyte\Dependencies\Postgresql\bin\psql.exe"
@@ -17,7 +16,7 @@ $username = "postgres"
 $env:PGPASSWORD = $PGConfig.password
 $database = $PGConfig.database
 
-$CompletionDate = (Get-Date).AddDays(-$Timespace).ToString('yyyy-MM-dd HH:mm:ss')
+$CompletionDate = (Get-Date).AddDays(-$Days).ToString('yyyy-MM-dd HH:mm:ss')
 
 if (-NOT (Test-Path $OutPath)) {
 	New-Item $OutPath -ItemType "directory"
