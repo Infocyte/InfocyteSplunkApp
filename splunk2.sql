@@ -143,7 +143,6 @@ CREATE OR REPLACE VIEW public.splunkmodules AS
             scanmoduleinstance.hostid,
             f.synapse
            FROM scanmoduleinstance join filerep f on scanmoduleinstance.filerepid = f.id
-		   WHERE (scanmoduleinstance.localblacklist OR scanmoduleinstance.malicious OR scanmoduleinstance.compromised OR scanmoduleinstance.suspicious OR scanmoduleinstance.unknown OR f.synapse < -0.5)
         UNION
          SELECT DISTINCT scandriverinstance.driverid AS id,
             'Driver'::text AS type,
@@ -166,7 +165,6 @@ CREATE OR REPLACE VIEW public.splunkmodules AS
             scandriverinstance.hostid,
             f.synapse
            FROM scandriverinstance join filerep f on scandriverinstance.filerepid = f.id
-		   WHERE (scandriverinstance.localblacklist OR scandriverinstance.malicious OR scandriverinstance.compromised OR scandriverinstance.suspicious OR scandriverinstance.unknown OR f.synapse < -0.5)
 		)
   SELECT scan.scancompletedon,
     scanhost.hostname,
@@ -196,8 +194,7 @@ CREATE OR REPLACE VIEW public.splunkmodules AS
 	splunkscan scan 
   WHERE module.scanid = scan.id
 	AND module.hostid = scanhost.hostid
-	AND module.scanid = scanhost.scanid
-	AND module.flagname != 'Verified Good';
+	AND module.scanid = scanhost.scanid;
 	
 	
 CREATE OR REPLACE VIEW public.splunkautostarts AS 
@@ -235,9 +232,7 @@ CREATE OR REPLACE VIEW public.splunkautostarts AS
 	WHERE scanautostartinstance.scanid = scan.id 
 		AND scanautostartinstance.hostid = scanhost.hostid 
 		AND scanautostartinstance.scanid = scanhost.scanid
-		AND scanautostartinstance.filerepid = f.id
-		AND (scanautostartinstance.localblacklist OR scanautostartinstance.malicious OR scanautostartinstance.compromised OR scanautostartinstance.suspicious OR scanautostartinstance.unknown OR f.synapse < -0.5)
-		AND scanautostartinstance.flagname != 'Verified Good';
+		AND scanautostartinstance.filerepid = f.id;
 
 -- View: public.splunkmem
 CREATE OR REPLACE VIEW public.splunkmem AS 

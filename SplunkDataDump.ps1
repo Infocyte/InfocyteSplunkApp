@@ -1,6 +1,9 @@
-# Output fields
-$OutPath = "C:\Program Files\Infocyte\SplunkData\"
-$Timespace = 7 # Age of new data to pull from HUNT (in days)
+Param(
+	[Parameter(	Position = 0, 
+					Mandatory = $true)]
+	[Int]$Timespace = 7 # Age of new data to pull from HUNT (in days)
+	[String]$OutPath = "C:\Program Files\Infocyte\SplunkData\" # Output
+)
 
 $psql = "C:\Program Files\Infocyte\Dependencies\Postgresql\bin\psql.exe"
 <# 
@@ -21,7 +24,9 @@ if (-NOT (Test-Path $OutPath)) {
 }
 
 $ObjectTypes = @(
-	"splunkfiles",
+	"splunkmodules",
+	"splunkprocesses",
+	"splunkautostarts",
 	"splunkmem",
 	"splunkconnection",
 	"splunkscan",
@@ -36,7 +41,7 @@ if (&$psql -U $username -d $database -c "select viewname from pg_catalog.pg_view
 	# Views Exist
 } else { 
 	Write-Warning "ERROR: Splunk Views have not been loaded in the Infocyte Database.  Run SetupInfocyteViews.ps1 first!"
-	Start-Wait 5
+	Start-Wait 3
 	return
 }
 

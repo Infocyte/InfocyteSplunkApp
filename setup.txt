@@ -5,7 +5,7 @@ Setup Splunk Server
  - Setup Receiver on port 9997
  - Create Index called "Infocyte"
  
-Install Infocyte HUNT Analytics App in Splunk 
+Install Infocyte HUNT App in Splunk 
  - Copy app folder to C:\Program Files\Splunk\etc\app\
  - Restart Splunk
  
@@ -25,6 +25,7 @@ Load Database Views into Infocyte
  - Run Setup.ps1
    -- PS C:\> .\Setup.ps1
  - Views format Infocyte scan data into one line JSON events that can be dropped to disk (monitored by forwarder) or sent to a TCP listener
+ - Add the -All selection if you want all objects dumped.  This is a LOT of data so make sure you have plenty of splunk licenses if you want this.  Normally it defaults to all processes and then a selection of modules and autostarts that are Bad, Suspicious, Unknown, and Synapse below -0.5.
   
 Pull Scan Data from Infocyte (manual)
  - Run SplunkDataDump.ps1
