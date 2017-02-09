@@ -1,6 +1,8 @@
-# Output fields
-$OutPath = "C:\Program Files\Infocyte\SplunkData\"
-$Timespace = 7 # Age of new data to pull from HUNT (in days)
+Param(
+	[Parameter()]
+	[Int]$Days = 7, # Age of new data to pull from HUNT (in days)
+	[String]$OutPath = "C:\Program Files\Infocyte\SplunkData\" # Output Path of SplunkData json files - this folder should be monitored by a Splunk Forwarder
+)
 
 $psql = "C:\Program Files\Infocyte\Dependencies\Postgresql\bin\psql.exe"
 <# 
@@ -14,14 +16,16 @@ $username = "postgres"
 $env:PGPASSWORD = $PGConfig.password
 $database = $PGConfig.database
 
-$CompletionDate = (Get-Date).AddDays(-$Timespace).ToString('yyyy-MM-dd HH:mm:ss')
+$CompletionDate = (Get-Date).AddDays(-$Days).ToString('yyyy-MM-dd HH:mm:ss')
 
 if (-NOT (Test-Path $OutPath)) {
 	New-Item $OutPath -ItemType "directory"
 }
 
 $ObjectTypes = @(
-	"splunkfiles",
+	"splunkmodules",
+	"splunkprocesses",
+	"splunkautostarts",
 	"splunkmem",
 	"splunkconnection",
 	"splunkscan",
@@ -36,7 +40,7 @@ if (&$psql -U $username -d $database -c "select viewname from pg_catalog.pg_view
 	# Views Exist
 } else { 
 	Write-Warning "ERROR: Splunk Views have not been loaded in the Infocyte Database.  Run SetupInfocyteViews.ps1 first!"
-	Start-Wait 5
+	Start-Wait 3
 	return
 }
 

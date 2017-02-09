@@ -66,7 +66,7 @@
       <title>Malicious Active Processes, Modules, &amp; Drivers</title>
       <table>
         <search>
-          <query>index="infocyte" sourcetype="infocytescan" (type="Process" OR type="Module" OR type="Driver") $dash_scan_tok$ | search "*$analytics_search_tok$*"  | eval "Scan Time"=strftime(_time, "%Y/%m/%d %H:%M %z"), "Scan Id"=targetlist."-".strftime(_time, "%Y%m%d-%H%M-%S"), path=replace(path,"\\\\\\\\","\\"), regpath = replace(regpath,"\\\\\\\\","\\") | sort - "Scan Time", - threatscore | table "Scan Id", hostname, ip, type,  name, path, sha1, size, occurances, account, synapse, threatscore, threatname | fieldformat path=replace(path,"^(.{40}).*","\1...") | fieldformat sha1=replace(sha1,".*(.{10})$","...\1")  | fieldformat size=size/1000</query>
+          <query>index="infocyte" sourcetype="infocytescan" (type="Process" OR type="Module" OR type="Driver") $dash_scan_tok$ | search "*$analytics_search_tok$*"  | eval "Scan Time"=strftime(_time, "%Y/%m/%d %H:%M %z"), "Scan Id"=targetlist."-".strftime(_time, "%Y%m%d-%H%M-%S"), path=replace(path,"\\\\\\\\","\\"), regpath = replace(regpath,"\\\\\\\\","\\") | sort - "Scan Time", - threatscore | table "Scan Id", hostname, ip, type,  name, path, sha1, size, occurrences, account, synapse, threatscore, threatname | fieldformat path=replace(path,"^(.{40}).*","\1...") | fieldformat sha1=replace(sha1,".*(.{10})$","...\1")  | fieldformat size=size/1000</query>
           <earliest>$dash_time_tok.earliest$</earliest>
           <latest>$dash_time_tok.latest$</latest>
         </search>
@@ -96,7 +96,7 @@
       <title>Malicious Autostart Entries</title>
       <table>
         <search>
-          <query>index="infocyte" sourcetype="infocytescan" (type=Autostart) $dash_scan_tok$ | search "*$analytics_search_tok$*"  |  eval "Scan Time"=strftime(_time, "%Y/%m/%d %H:%M %z"), "Scan Id"=targetlist."-".strftime(_time, "%Y%m%d-%H%M-%S"), path=replace(path,"\\\\\\\\","\\"), regpath = replace(regpath,"\\\\\\\\","\\") | sort - "Scan Time", - threatscore | table "Scan Id", hostname, ip, autostarttype, name, path, sha1, size, regpath, regvalue, occurances, synapse, threatscore, threatname | fieldformat regpath=replace(regpath,".*(.{50})$","...\1") | fieldformat path=replace(path,"^(.{40}).*","\1...") | fieldformat sha1=replace(sha1,".*(.{10})$","...\1") | fieldformat size=size/1000</query>
+          <query>index="infocyte" sourcetype="infocytescan" (type=Autostart) $dash_scan_tok$ | search "*$analytics_search_tok$*"  |  eval "Scan Time"=strftime(_time, "%Y/%m/%d %H:%M %z"), "Scan Id"=targetlist."-".strftime(_time, "%Y%m%d-%H%M-%S"), path=replace(path,"\\\\\\\\","\\"), regpath = replace(regpath,"\\\\\\\\","\\") | sort - "Scan Time", - threatscore | table "Scan Id", hostname, ip, autostarttype, name, path, sha1, size, regpath, regvalue, occurrences, synapse, threatscore, threatname | fieldformat regpath=replace(regpath,".*(.{50})$","...\1") | fieldformat path=replace(path,"^(.{40}).*","\1...") | fieldformat sha1=replace(sha1,".*(.{10})$","...\1") | fieldformat size=size/1000</query>
           <earliest>$dash_time_tok.earliest$</earliest>
           <latest>$dash_time_tok.latest$</latest>
         </search>
