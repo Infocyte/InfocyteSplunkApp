@@ -1,0 +1,28 @@
+<panel>
+  <title>Malicious Volatile Memory Injects</title>
+  <table>
+    <search>
+      <query>index="infocyte" sourcetype= "infocytescan" type=MemoryObject $dash_scan_tok$ | search "*$analytics_search_tok$*" | eval "Scan Time"=strftime(_time, "%Y/%m/%d %H:%M %z"), "Scan Id"=targetlist."-".strftime(_time, "%Y%m%d-%H%M-%S"), processpath=replace(processpath,"\\\\\\\\","\\") | sort - "Scan Time", - threatscore | table "Scan Id", hostname, ip, pid, processname, processpath, size, address, protection, synapse, threatscore, threatname | fieldformat path=replace(path,"^(.{40}).*","\1...")  | fieldformat size=size/1000</query>
+      <earliest>$dash_time_tok.earliest$</earliest>
+      <latest>$dash_time_tok.latest$</latest>
+    </search>
+    <format type="number" field="size">
+      <option name="precision">0</option>
+      <option name="unit">kb</option>
+    </format>
+    <format type="number" field="synapse">
+      <option name="useThousandSeparators">false</option>
+    </format>
+    <format type="color" field="synapse">
+      <colorPalette type="list">[#D93F3C,#F7BC38,#6DB7C6,#65A637]</colorPalette>
+      <scale type="threshold">-0.5,0,0.5</scale>
+    </format>
+    <format type="color" field="threatscore">
+      <colorPalette type="list">[#65A637,#6DB7C6,#ED8440,#D93F3C]</colorPalette>
+      <scale type="threshold">2,6,8</scale>
+    </format>
+    <format type="color" field="threatname">
+      <colorPalette type="map">{"Bad":#D93F3C,"Blacklist":#555555,"Suspicious":#ED8440,"Unknown":#FFFFFF,"Low Risk":#6DB7C6,"Good":#65A637,"Whitelist":#65A637}</colorPalette>
+    </format>
+  </table>
+</panel>
