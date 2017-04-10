@@ -2,7 +2,15 @@
   <title>Malicious Volatile Memory Injects</title>
   <table>
     <search>
-      <query>index="infocyte" sourcetype= "infocytescan" type=MemoryObject $dash_scan_tok$ | search "*$analytics_search_tok$*" | eval "Scan Time"=strftime(_time, "%Y/%m/%d %H:%M %z"), "Scan Id"=targetlist."-".strftime(_time, "%Y%m%d-%H%M-%S"), processpath=replace(processpath,"\\\\\\\\","\\") | sort - "Scan Time", - threatscore | table "Scan Id", hostname, ip, pid, processname, processpath, size, address, protection, synapse, threatscore, threatname | fieldformat path=replace(path,"^(.{40}).*","\1...")  | fieldformat size=size/1000</query>
+      <query>index="infocyte" sourcetype= "infocytescan" type=MemoryObject $dash_scan_tok$
+| where (threatname="Bad" OR threatname="Suspicious" OR flagname="Verified Bad") AND (flagname!="Verified Good")
+| search "*$analytics_search_tok$*"
+| eval nt=replace(scancompletedon,"^(.{16}).*","\1"), "Scan"=targetlist."-".nt
+| sort - Scan, - threatscore
+| table Scan, hostname, ip, pid, processname, processpath, size, address, protection, avpositives, synapse, threatscore, threatname
+| fieldformat path=replace(path,"^(.{40}).*","\1...")
+| fieldformat size=size/1000
+| rename avpositives as av</query>
       <earliest>$dash_time_tok.earliest$</earliest>
       <latest>$dash_time_tok.latest$</latest>
     </search>

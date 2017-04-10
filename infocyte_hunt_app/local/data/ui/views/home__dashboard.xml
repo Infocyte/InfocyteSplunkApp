@@ -46,7 +46,11 @@
       <title>Scan Summary Report</title>
       <table>
         <search>
-          <query>index="infocyte" sourcetype="infocytescan" type=ScanMetadata $dash_targetlist_tok$ $dash_scan_tok$ | sort -_time | eval "Scan Time"=strftime(_time, "%Y/%m/%d %H:%M %z"), "Scan Id"=targetlist."-".strftime(_time, "%Y%m%d-%H%M-%S") | rename targetlist as "Target List", hostcount as Hosts, failedhosts as "Failures", totalobjectcount as "Total Objects", compromisedobjects as "Compromised Objects" | table "Scan Id", "Target List", "Scan Time", Hosts, "Failures", "Total Objects", "Compromised Objects"</query>
+          <query>index="infocyte" sourcetype="infocytescan" type=ScanMetadata $dash_targetlist_tok$ $dash_scan_tok$ 
+| eval "Scan Time"=strftime(_time, "%Y/%m/%d %H:%M %z"), nt=replace(scancompletedon,"^(.{16}).*","\1"), Scan=targetlist."-".nt
+| sort - _time
+| rename targetlist as "Target List", hostcount as Hosts, failedhosts as "Failures", totalobjectcount as "Total Objects", compromisedobjects as "Compromised Objects" 
+| table Scan, "Target List", "Scan Time", Hosts, "Failures", "Total Objects", "Compromised Objects"</query>
           <earliest>$dash_time_tok.earliest$</earliest>
           <latest>$dash_time_tok.latest$</latest>
         </search>
@@ -95,7 +99,9 @@
       <title>Operating System Statistics</title>
       <table>
         <search>
-          <query>index="infocyte" sourcetype= "infocytescan" type=Host $dash_scan_tok$ | rename osversion as "Operating System" | stats values(servicepack) as "Service Packs", values(architecture) as Architectures, dc(id) as "Hosts" by "Operating System"</query>
+          <query>index="infocyte" sourcetype= "infocytescan" type=Host $dash_scan_tok$ 
+| rename osversion as "Operating System" 
+| stats values(servicepack) as "Service Packs", values(architecture) as Architectures, dc(id) as "Hosts" by "Operating System"</query>
           <earliest>$dash_time_tok.earliest$</earliest>
           <latest>$dash_time_tok.latest$</latest>
         </search>
@@ -105,7 +111,11 @@
       <title>Threat Status Distribution by Scan Id</title>
       <table>
         <search>
-          <query>index="infocyte" sourcetype="infocytescan" type=ScanMetadata $dash_targetlist_tok$ $dash_scan_tok$ | eval "Scan Time"=strftime(_time, "%Y/%m/%d %H:%M %z"), "Scan Id"=targetlist."-".strftime(_time, "%Y%m%d-%H%M-%S") | rename targetlist as "Target List", hostcount as Hosts, totalobjectcount as "Total Objects", compromisedobjects as "Compromised Objects",good as Good, lowrisk as "Low Risk", unknown as Unknown, suspicious as Suspicious, bad as Bad | sort - _time | table "Scan Id", Hosts, Good, "Low Risk", Unknown, Suspicious, Bad</query>
+          <query>index="infocyte" sourcetype="infocytescan" type=ScanMetadata $dash_targetlist_tok$ $dash_scan_tok$ 
+| eval "Scan Time"=strftime(_time, "%Y/%m/%d %H:%M %z"), nt=replace(scancompletedon,"^(.{16}).*","\1"), Scan=targetlist."-".nt
+| rename targetlist as "Target List", hostcount as Hosts, totalobjectcount as "Total Objects", compromisedobjects as "Compromised Objects",good as Good, lowrisk as "Low Risk", unknown as Unknown, suspicious as Suspicious, bad as Bad 
+| sort - _time 
+| table Scan, Hosts, Good, "Low Risk", Unknown, Suspicious, Bad</query>
           <earliest>$dash_time_tok.earliest$</earliest>
           <latest>$dash_time_tok.latest$</latest>
         </search>
@@ -142,7 +152,11 @@
       <title>Target List Summary Report</title>
       <table>
         <search>
-          <query>index="infocyte" sourcetype="infocytescan" type=ScanMetadata $dash_targetlist_tok$ $dash_scan_tok$  | sort -_time | eval "Scan Time"=strftime(_time, "%Y/%m/%d %H:%M %z"), "Scan Id"=targetlist."-".strftime(_time, "%Y%m%d-%H%M-%S") | rename targetlist as "Target List" | stats dc(scanid) as Scans, avg(hostcount) as "Ave Hosts", avg(totalobjectcount) as "Ave Objects", latest("Scan Time") as "Last Scan", latest(failedhosts) as "Failures (last scan)", latest(compromisedobjects) as "Compromised Objects (last scan)" by "Target List"</query>
+          <query>index="infocyte" sourcetype="infocytescan" type=ScanMetadata $dash_targetlist_tok$ $dash_scan_tok$  
+| sort -_time 
+| eval "Scan Time"=strftime(_time, "%Y/%m/%d %H:%M %z"), nt=replace(scancompletedon,"^(.{16}).*","\1"), Scan=targetlist."-".nt
+| rename targetlist as "Target List" 
+| stats sparkline(avg(hostcount)) as "Sparkline(hosts)", dc(scanid) as Scans, avg(hostcount) as "Ave Hosts", avg(totalobjectcount) as "Ave Objects", latest("Scan Time") as "Last Scan", latest(failedhosts) as "Failures (last scan)", latest(compromisedobjects) as "Compromised Objects (last scan)" by "Target List"</query>
           <earliest>$dash_time_tok.earliest$</earliest>
           <latest>$dash_time_tok.latest$</latest>
         </search>

@@ -1,0 +1,86 @@
+#Scan Summary
+index="infocyte" sourcetype="infocytescan" type=ScanMetadata $dash_targetlist_tok$ $dash_scan_tok$
+| eval "Scan Time"=strftime(_time, "%Y/%m/%d %H:%M %z"), nt=replace(scancompletedon,"^(.{16}).*","\1"), Scan=targetlist."-".nt
+| sort - _time
+| rename targetlist as "Target List", hostcount as Hosts, failedhosts as "Failures", totalobjectcount as "Total Objects", compromisedobjects as "Compromised Objects"
+| table Scan, "Target List", "Scan Time", Hosts, "Failures", "Total Objects", "Compromised Objects"
+
+# Global Calendar
+index="infocyte" sourcetype="infocytescan" type=ScanMetadata
+| eval weight=case(compromisedhosts > 0, 2, hostcount > 0,0)
+| timechart span=1d max(weight) as Scans
+
+#Operating System Statistics
+index="infocyte" sourcetype= "infocytescan" type=Host $dash_scan_tok$
+| rename osversion as "Operating System"
+| stats values(servicepack) as "Service Packs", values(architecture) as Architectures, dc(id) as "Hosts" by "Operating System"
+
+#Threat Status Distribution
+index="infocyte" sourcetype="infocytescan" type=ScanMetadata $dash_targetlist_tok$ $dash_scan_tok$
+| eval "Scan Time"=strftime(_time, "%Y/%m/%d %H:%M %z"), nt=replace(scancompletedon,"^(.{16}).*","\1"), Scan=targetlist."-".nt
+| rename targetlist as "Target List", hostcount as Hosts, totalobjectcount as "Total Objects", compromisedobjects as "Compromised Objects",good as Good, lowrisk as "Low Risk", unknown as Unknown, suspicious as Suspicious, bad as Bad
+| sort - _time
+| table Scan, Hosts, Good, "Low Risk", Unknown, Suspicious, Bad
+
+# Target List Summary
+index="infocyte" sourcetype="infocytescan" type=ScanMetadata $dash_targetlist_tok$ $dash_scan_tok$
+| sort -_time
+| eval "Scan Time"=strftime(_time, "%Y/%m/%d %H:%M %z"), nt=replace(scancompletedon,"^(.{16}).*","\1"), Scan=targetlist."-".nt
+| rename targetlist as "Target List"
+| stats sparkline(avg(hostcount)) as "Sparkline(hosts)", dc(scanid) as Scans, avg(hostcount) as "Ave Hosts", avg(totalobjectcount) as "Ave Objects", latest("Scan Time") as "Last Scan", latest(failedhosts) as "Failures (last scan)", latest(compromisedobjects) as "Compromised Objects (last scan)" by "Target List"
+
+# Scan Calendar
+index="infocyte" sourcetype="infocytescan" type=ScanMetadata
+| eval weight=case(compromisedhosts > 0, 2, hostcount > 0,0)
+| timechart span=1d max(weight) as Scans by targetlist
+
+#Memory
+index="infocyte" sourcetype= "infocytescan" type=MemoryObject $dash_scan_tok$
+| where (threatname="Bad" OR threatname="Suspicious" OR flagname="Verified Bad") AND (flagname!="Verified Good")
+| search "*$analytics_search_tok$*"
+| eval nt=replace(scancompletedon,"^(.{16}).*","\1"), "Scan"=targetlist."-".nt
+| sort - Scan, - threatscore
+| table Scan, hostname, ip, pid, processname, processpath, size, address, protection, avpositives, synapse, threatscore, threatname
+| fieldformat path=replace(path,"^(.{40}).*","\1...")
+| fieldformat size=size/1000
+| rename avpositives as av
+
+
+#Processes
+index="infocyte" sourcetype="infocytescan" (type="Process" OR type="Module" OR type="Driver") $dash_scan_tok$
+| where (threatname="Bad" OR threatname="Suspicious" OR flagname="Verified Bad") AND (flagname!="Verified Good")
+| search "*$analytics_search_tok$*"
+| eval nt=replace(scancompletedon,"^(.{16}).*","\1"), "Scan"=targetlist."-".nt
+| sort - Scan, - threatscore
+| table Scan, hostname, ip, type,  name, path, sha1, size, account, accountpriv, occurrences, avpositives, synapse, threatscore, threatname
+| fieldformat path=replace(path,"^(.{40}).*","\1...")
+| fieldformat sha1=replace(sha1,".*(.{10})$","...\1")
+| fieldformat size=size/1024
+| rename avpositives as av
+
+# Legitimate Tools Audit
+index="infocyte" sourcetype="infocytescan" type="Process" $dash_scan_tok$ [ | inputlookup legittools | fields + toolname  | rename toolname as search]
+| search "*$analytics_search_tok$*"
+| eval nt=replace(scancompletedon,"^(.{16}).*","\1"), "Scan"=targetlist."-".nt
+| sort - Scan, - threatscore
+| table Scan, hostname, ip, name, commandline, account, accountpriv
+
+#Autostarts
+index="infocyte" sourcetype="infocytescan" (type=Autostart) $dash_scan_tok$
+  | where (threatname="Bad" OR threatname="Suspicious" OR flagname="Verified Bad") AND (flagname!="Verified Good")
+  | search "*$analytics_search_tok$*"
+  | eval nt=replace(scancompletedon,"^(.{16}).*","\1"), "Scan"=targetlist."-".nt
+  | sort - Scan, - threatscore
+  | table Scan, hostname, ip, autostarttype, name, sha1, size, regpath, regvalue, occurrences, avpositives, synapse, threatscore, threatname
+  | fieldformat regpath=replace(regpath,".*(.{30})$","...\1")
+  | fieldformat sha1=replace(sha1,".*(.{16})$","...\1")
+  | fieldformat size=size/1024
+  | rename avpositives as av
+
+# Connections
+index="infocyte" sourcetype="infocytescan" (type=Connection) $dash_scan_tok$
+| where localaddr != remoteaddr AND threatscore>0
+| search "*$analytics_search_tok$*"
+| eval nt=replace(scancompletedon,"^(.{16}).*","\1"), "Scan"=targetlist."-".nt
+| sort - Scan, - threatscore
+| table Scan, hostname, processname, localaddr, localport, remoteaddr, remoteport, protocol, threatscore

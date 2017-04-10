@@ -21,7 +21,7 @@ access = read : [ * ], write : [ admin, power ]
 export = none
 owner = admin
 version = 6.5.0
-modtime = 1476923520.780964100
+modtime = 1477452703.607158700
 
 [nav/default]
 access = read : [ * ], write : [ * ]
@@ -71,8 +71,8 @@ modtime = 1476921500.498901300
 access = read : [ * ], write : [ admin, power ]
 export = none
 owner = nobody
-version = 6.5.1
-modtime = 1480839306.049361900
+version = 6.5.0
+modtime = 1479176171.807591300
 
 [panels/malicious_volatile_memory_injects]
 owner = admin
