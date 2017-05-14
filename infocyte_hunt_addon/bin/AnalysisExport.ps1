@@ -19,6 +19,7 @@ Param(
 )
 
 # $Script:HuntServer = 'https://demo.infocyte.com'
+$scriptPath = split-path -parent $MyInvocation.MyCommand.Definition
 
 if (-NOT $HuntCredential.username) {
 	#Use Default Infocyte Credentials
@@ -30,6 +31,10 @@ if (-NOT $HuntCredential.username) {
 if (-NOT (Test-Path $OutPath)) {
 	New-Item $OutPath -ItemType "directory"
 }
+
+
+# Import Infocyte API Functions:
+. $scriptPath\InfocyteAPIFunctions.ps1
 
 # MAIN
 New-ICToken $Credential $HuntServer
