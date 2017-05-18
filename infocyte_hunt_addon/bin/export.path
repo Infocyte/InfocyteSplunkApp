@@ -1,0 +1,1 @@
+$SystemRoot\System32\WindowsPowerShell\v1.0\powershell.exe -command  "& {set-executionpolicy Bypass; 'C:\Program Files\SplunkUniversalForwarder\etc\apps\infocyte_hunt_addon\bin\export.ps1' }"

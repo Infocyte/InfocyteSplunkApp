@@ -1,3 +1,44 @@
+<#
+
+#>
+Param(
+	[Parameter()]
+	[Int]$Days = 0, # Age of new data to pull from HUNT (in days)
+	
+	[Parameter()]
+	[String]$HuntServer = "https://localhost:4443",
+	
+	[Parameter()]
+	[String]$OutPath = "C:\Program Files\SplunkUniversalForwarder\etc\app\infocyte_hunt_addon\bin\SplunkData", # Output Path of SplunkData json files
+	
+	[Parameter()]
+	[Switch]$Replace,
+	
+	[Parameter()]
+	[PSCredential]$HuntCredential
+)
+
+# $Script:HuntServer = 'https://demo.infocyte.com'
+$SplunkHome = "C:\Program Files\SplunkUniversalForwarder\etc\app\infocyte_hunt_addon"
+
+if (-NOT $HuntCredential.username) {
+	# Grab from config file
+	$username = (Get-Contect $SplunkHome\bin\export.config)[0]
+	$password = (Get-Contect $SplunkHome\bin\export.config)[1] | ConvertTo-SecureString -asPlainText -Force
+	
+	#Use Default Infocyte Credentials
+	#$username = 'infocyte'
+	#$password = 'pulse' | ConvertTo-SecureString -asPlainText -Force
+	$Script:HuntCredential = New-Object System.Management.Automation.PSCredential($username,$password)
+}
+
+
+if (-NOT (Test-Path $OutPath)) {
+	New-Item $OutPath -ItemType "directory"
+}
+
+
+# Functions
 
 ## FUNCTIONS
 
@@ -563,128 +604,108 @@ function Get-ICFileReport ($sha1){
 }
 
 
-# Get Job Functions
-function Get-ICActiveTasks {
-	Write-Verbose "Getting Active Tasks from Infocyte HUNT: $HuntServerAddress"
-	$headers = New-Object "System.Collections.Generic.Dictionary[[String],[String]]"
-	$headers.Add("Authorization", $Global:ICToken)	
-	try {
-		$objects += Invoke-RestMethod ("$HuntServerAddress/api/usertasks/active") -Headers $headers -Method GET -ContentType 'application/json'		
-	} catch {
-		Write-Warning "Error: $_"
-		return "ERROR: $($_.Exception.Message)"
-	}	
-	$objects | where { $_.status -eq "Active" }
+
+# MAIN
+New-ICToken $Credential $HuntServer
+
+# splunkscan
+$AllScans = Get-ICScans
+
+# Create Time Box
+if ($Days -ne 0 -AND $AllScans) {
+	$CurrentDT = Get-Date
+	$FirstDT = $CurrentDT.AddDays(-$Days)
+	$Scans = $AllScans | where { $_.scancompletedon } | where { [datetime]$_.scancompletedon -gt $FirstDT -AND $_.hostCount -gt 0 }
+} else {
+	$Scans = $AllScans
 }
 
-function Get-ICLastScanId {
-	Write-Verbose "Getting last ScanId from Infocyte HUNT: $HuntServerAddress"
-	$headers = New-Object "System.Collections.Generic.Dictionary[[String],[String]]"
-	$headers.Add("Authorization", $Global:ICToken)
-	try {
-		$Scans = Invoke-RestMethod ("$HuntServerAddress/api/Scans") -Headers $headers -Method GET -ContentType 'application/json'
-	} catch {
-		Write-Warning "Error: $_"
-		return "ERROR: $($_.Exception.Message)"
-	}
-	if ($Scans) {
-		($Scans | sort-object completedOn -descending)[0].id
+if (-NOT $Scans) {
+	Write-Warning "No Scans were found for the given date range"
+	exit
+}
+
+# splunkscans
+$itemtype = "Scans"
+if (Test-Path $OutPath\$itemtype.json) {
+	if ($Replace) {
+		Remove-Item $OutPath\$itemtype.json
+		Write-Verbose "Requesting data from $($Scans.count) Scans."
 	} else {
-		return $null
-	}	
-}
-
-function Get-ICActiveJobs {
-	Write-Verbose "Getting Active Jobs from Infocyte HUNT: $HuntServerAddress"
-	$headers = New-Object "System.Collections.Generic.Dictionary[[String],[String]]"
-	$headers.Add("Authorization", $Global:ICToken)
-	$Skip = 0
-	#$headers.Add("filter", '{"where":{"or":[{"status":"Scanning"},{"status":"Scanning"}]},"order":["timestamp"],"limit":1000,"skip":'+$skip+'}')
-	$headers.Add("filter", '{"where":{"or":[]},"order":["timestamp"],"limit":1000,"skip":'+$skip+'}')
-	try {
-		$Scans = Invoke-RestMethod ("$HuntServerAddress/api/CoreJobs") -Headers $headers -Method GET -ContentType 'application/json'
-	} catch {
-		Write-Warning "Error: $_"
-		return "ERROR: $($_.Exception.Message)"
+		#Check latest, only append new scanids
+		$old = gc $OutPath\$itemtype.json | convertfrom-JSON
+		$scanIds = $old.scanid
+		Write-Verbose "$($Scans.count) Scans found. $($scanIds.count) scans have already been exported"
+		$Scans = $Scans | where { $scanIds -notcontains $_.scanid }
+		Write-Verbose "Requesting $($Scans.count) new Scans."
+		
 	}
-	if ($Scans) {
-		$Scans | where { $_.status -ne "Complete" }
-	} else {
-		return $null
-	}	
 }
+$Scans | % { $_ | ConvertTo-Json -compress | Out-File $OutPath\$itemtype.json -Append }
 
 
-# Creation APIs
-function New-ICTargetList ([String]$Name) {
-	Write-Verbose "Creating new target list: $Name"
-	$headers = New-Object "System.Collections.Generic.Dictionary[[String],[String]]"
-	$headers.Add("Authorization", $Global:ICToken)
-	$body = '{"name":"'+$Name+'"}'
-	try {
-		$objects += Invoke-RestMethod ("$HuntServerAddress/api/targets") -Headers $headers -Body $body -Method POST -ContentType 'application/json'		
-	} catch {
-		Write-Warning "Error: $_"
-		return "ERROR: $($_.Exception.Message)"
-	}
-	$objects
+if ((Test-Path $OutPath\$scanname.json) -AND $Replace) {
+	Remove-Item $OutPath\$scanname.json
+}
+$Scans | % {
+	$scanname = "$($_.targetlist)-$($_.scanname)"
+	
+	# splunkprocesses
+	$itemtype = "Processes"
+	Write-Verbose "[] Exporting $itemtype from $scanname"
+	$time = Measure-Command { $obj = Get-ICProcesses $_.id }
+	Write-Verbose "Received $($obj.count) $itemtype from Hunt server in $($time.TotalSeconds) seconds"
+	$obj | % { $_ | ConvertTo-Json -compress | Write-Output }
+	#$obj | % { $_ | ConvertTo-Json -compress | Out-File $OutPath\$scanname.json -Append }
+
+	# splunkmodules
+	$itemtype = "Modules"
+	Write-Verbose "[] Exporting $itemtype from $scanname"
+	$time = Measure-Command { $obj = Get-ICModules $_.id }
+	Write-Verbose "Received $($obj.count) $itemtype from Hunt server in $($time.TotalSeconds) seconds"	
+	$obj | % { $_ | ConvertTo-Json -compress | Write-Output }
+	#$obj | % { $_ | ConvertTo-Json -compress | Out-File $OutPath\$scanname.json -Append }
+
+	
+	# splunkdrivers
+	$itemtype = "Drivers"
+	Write-Verbose "[] Exporting $itemtype from $scanname"
+	$time = Measure-Command { $obj = Get-ICDrivers $_.id }
+	Write-Verbose "Received $($obj.count) $itemtype from Hunt server in $($time.TotalSeconds) seconds"
+	$obj | % { $_ | ConvertTo-Json -compress | Write-Output }
+	#$obj | % { $_ | ConvertTo-Json -compress | Out-File $OutPath\$scanname.json -Append }
+
+	# splunkautostarts
+	$itemtype = "Autostarts"
+	Write-Verbose "[] Exporting $itemtype from $scanname"
+	$time = Measure-Command { $obj = Get-ICAutostarts $_.id }
+	Write-Verbose "Received $($obj.count) $itemtype from Hunt server in $($time.TotalSeconds) seconds"
+	$obj | % { $_ | ConvertTo-Json -compress | Write-Output }
+	#$obj | % { $_ | ConvertTo-Json -compress | Out-File $OutPath\$scanname.json -Append }
+
+	# splunkmemscans
+	$itemtype = "Memscans"
+	Write-Verbose "[] Exporting $itemtype from $scanname"
+	$time = Measure-Command { $obj = Get-ICMemscans $_.id }
+	Write-Verbose "Received $($obj.count) $itemtype from Hunt server in $($time.TotalSeconds) seconds"
+	$obj | % { $_ | ConvertTo-Json -compress | Write-Output }
+	# $obj | % { $_ | ConvertTo-Json -compress | Out-File $OutPath\$scanname.json -Append }
+
+	# splunkconnections
+	$itemtype = "Connections"
+	Write-Verbose "[] Exporting $itemtype from $scanname"
+	$time = Measure-Command { $obj = Get-ICConnections $_.id }
+	Write-Verbose "Received $($obj.count) $itemtype from Hunt server in $($time.TotalSeconds) seconds"
+	$obj | % { $_ | ConvertTo-Json -compress | Write-Output }
+	# $obj | % { $_ | ConvertTo-Json -compress | Out-File $OutPath\$scanname.json -Append }
+
+	# splunkhosts
+	$itemtype = "Hosts"
+	Write-Verbose "[] Exporting $itemtype from $scanname"
+	$time = Measure-Command { $obj = Get-ICHosts $_.id }
+	Write-Verbose "Received $($obj.count) $itemtype from Hunt server in $($time.TotalSeconds) seconds"
+	$obj | % { $_ | ConvertTo-Json -compress | Write-Output }
+	# $obj | % { $_ | ConvertTo-Json -compress | Out-File $OutPath\$scanname.json -Append }
 }
 
-function New-ICQuery ([String]$TargetListId, [String]$query, [PSCredential]$Cred) {
-	Write-Verbose "Creating new Query in TargetList $TargetListId ($query) using username $($Cred.Username)"
-	$headers = New-Object "System.Collections.Generic.Dictionary[[String],[String]]"
-	$headers.Add("Authorization", $Global:ICToken)
-	$user = $Cred.Username | ConvertTo-JSON
-	$pass = $Cred.GetNetworkCredential().Password
-	$body = '{"type":"custom","username":'+$user+',"password":"'+$pass+'","value":"'+$query+'","targetid":"'+$TargetListId+'"}'
-	try {
-		$objects += Invoke-RestMethod ("$HuntServerAddress/api/queries") -Headers $headers -Body $body -Method POST -ContentType 'application/json'		
-	} catch {
-		Write-Warning "Error: $_"
-		return "ERROR: $($_.Exception.Message)"
-	}	
-	$objects
-}
-
-function Invoke-ICEnumeration ($TargetListId, $QueryId) {
-	Write-Verbose "Starting Enumeration of $TargetListId with Query $QueryId"
-	$headers = New-Object "System.Collections.Generic.Dictionary[[String],[String]]"
-	$headers.Add("Authorization", $Global:ICToken)
-	$body = '{"queries":["'+$QueryId+'"]}'
-	try {
-		$objects += Invoke-RestMethod ("$HuntServerAddress/api/targets/$TargetListId/Enumerate") -Headers $headers -Body $body -Method POST -ContentType 'application/json'		
-	} catch {
-		Write-Warning "Error: $_"
-		return "ERROR: $($_.Exception.Message)"
-	}	
-	$objects
-}
-
-function Invoke-ICScan ($TargetListId) {
-	Write-Verbose "Starting Scan of targetlist $TargetListId"
-	$headers = New-Object "System.Collections.Generic.Dictionary[[String],[String]]"
-	$headers.Add("Authorization", $Global:ICToken)	
-	$body = '{"options":{"EnableProcess":true,"EnableModule":true,"EnableDriver":true,"EnableMemory":true,"EnableAccount":true,"EnableAutostart":true,"EnableHook":true,"EnableNetwork":true,"EnableLog":true,"EnableDelete":true}}'
-	try {
-		$objects += Invoke-RestMethod ("$HuntServerAddress/api/targets/$TargetListId/scan") -Headers $headers -Body $body -Method POST -ContentType 'application/json'		
-	} catch {
-		Write-Warning "Error: $_"
-		return "ERROR: $($_.Exception.Message)"
-	}	
-	$objects
-}
-
-function Remove-ICAddresses ($TargetListId) {
-	Write-Verbose "Removing all addresses from TargetList $TargetListId"
-	$headers = New-Object "System.Collections.Generic.Dictionary[[String],[String]]"
-	$headers.Add("Authorization", $Global:ICToken)
-	$data = 'where=%7B%22and%22:%5B%7B%22targetid%22:%22'+$TargetListId+'%22%7D%5D%7D'
-	try {
-		$objects += Invoke-RestMethod ("$HuntServerAddress/api/Addresses?$data") -Headers $headers -Method DELETE -ContentType 'application/json'		
-	} catch {
-		Write-Warning "Error: $_"
-		return "ERROR: $($_.Exception.Message)"
-	}	
-	$objects
-}
 
