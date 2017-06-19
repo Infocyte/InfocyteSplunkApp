@@ -111,7 +111,7 @@ $dash_scan_tok$
       <title>Operating System Statistics</title>
       <table>
         <search>
-          <query>index="infocyte" sourcetype= "infocytescandata" type=Host  failed=false $dash_scan_tok$ 
+          <query>index="infocyte" sourcetype= "infocytescan" type=Host  failed=false $dash_scan_tok$ 
 $dash_targetlist_tok$
 | rename osversion as "Operating System", architecture as Arch
 | stats values(servicepack) as "Service Packs", dc(id) as "Hosts" by "Operating System", Arch 

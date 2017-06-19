@@ -51,7 +51,7 @@
       <title>AV Coverage</title>
       <table>
         <search>
-          <query>index="infocyte" sourcetype="infocytescandata" (type="Process" OR type="Autostart") $dash_targetlist_tok$ $dash_scan_tok$ 
+          <query>index="infocyte" sourcetype="infocytescan" (type="Process" OR type="Autostart") $dash_targetlist_tok$ $dash_scan_tok$ 
 | search [ inputlookup avlist | table avbinary | rename avbinary as name ]
 | rename name as "Process Name"
 | stats values(path) as Paths, dc(hostname) as Hosts by "Process Name"</query>
@@ -67,8 +67,8 @@
       <title>No AV</title>
       <table>
         <search>
-          <query>index="infocyte" sourcetype="infocytescandata" (type="Process" OR type="Autostart") $dash_targetlist_tok$ $dash_scan_tok$ 
-NOT [ search index="infocyte" sourcetype="infocytescandata" (type="Process" OR type="Autostart") $dash_targetlist_tok$ $dash_scan_tok$ `avlist` | search "*$analytics_search_tok$*" | fields hostname ] | stats values(hostname), dc(hostname)</query>
+          <query>index="infocyte" sourcetype="infocytescan" (type="Process" OR type="Autostart") $dash_targetlist_tok$ $dash_scan_tok$ 
+NOT [ search index="infocyte" sourcetype="infocytescan" (type="Process" OR type="Autostart") $dash_targetlist_tok$ $dash_scan_tok$ `avlist` | search "*$analytics_search_tok$*" | fields hostname ] | stats values(hostname), dc(hostname)</query>
           <earliest>$dash_time_tok.earliest$</earliest>
           <latest>$dash_time_tok.latest$</latest>
         </search>
@@ -83,7 +83,7 @@ NOT [ search index="infocyte" sourcetype="infocytescandata" (type="Process" OR t
       <title>Malicious Volatile Memory Injects</title>
       <table>
         <search>
-          <query>index="infocyte" sourcetype= "infocytescandata" type=MemoryObject $dash_targetlist_tok$ $dash_scan_tok$
+          <query>index="infocyte" sourcetype= "infocytescan" type=MemoryObject $dash_targetlist_tok$ $dash_scan_tok$
 | where (threatname="Bad" OR threatname="Suspicious" OR flagname="Verified Bad") AND (flagname!="Verified Good")
 | search "*$analytics_search_tok$*"
 | eval scant=strptime(scancompletedon, "%Y-%m-%dT%H:%M:%S.%3N"), Scan=targetlist."-".strftime(scant, "%Y%m%d-%H%M")
@@ -123,7 +123,7 @@ NOT [ search index="infocyte" sourcetype="infocytescandata" (type="Process" OR t
       <title>Malicious Active Processes, Modules, &amp; Drivers</title>
       <table>
         <search>
-          <query>index="infocyte" sourcetype="infocytescandata" (type="Process" OR type="Module" OR type="Driver") $dash_targetlist_tok$ $dash_scan_tok$
+          <query>index="infocyte" sourcetype="infocytescan" (type="Process" OR type="Module" OR type="Driver") $dash_targetlist_tok$ $dash_scan_tok$
 | where (threatname="Bad" OR threatname="Suspicious" OR flagname="Verified Bad") AND (flagname!="Verified Good")
 | search "*$analytics_search_tok$*"
 | eval scant=strptime(scancompletedon, "%Y-%m-%dT%H:%M:%S.%3N"), Scan=targetlist."-".strftime(scant, "%Y%m%d-%H%M")
@@ -168,7 +168,7 @@ NOT [ search index="infocyte" sourcetype="infocytescandata" (type="Process" OR t
       <title>Legitimate Tools Audit</title>
       <table>
         <search>
-          <query>index="infocyte" sourcetype="infocytescandata" type="Process" $dash_targetlist_tok$ $dash_scan_tok$ [ | inputlookup legittools | fields + toolname  | rename toolname as search]
+          <query>index="infocyte" sourcetype="infocytescan" type="Process" $dash_targetlist_tok$ $dash_scan_tok$ [ | inputlookup legittools | fields + toolname  | rename toolname as search]
 | where accountpriv=2
 | regex commandline="owershell.exe\"\s+-"
 | search "*$analytics_search_tok$*"
@@ -210,7 +210,7 @@ NOT [ search index="infocyte" sourcetype="infocytescandata" (type="Process" OR t
       <title>Malicious Autostart Entries</title>
       <table>
         <search>
-          <query>index="infocyte" sourcetype="infocytescandata" (type=Autostart) $dash_targetlist_tok$ $dash_scan_tok$
+          <query>index="infocyte" sourcetype="infocytescan" (type=Autostart) $dash_targetlist_tok$ $dash_scan_tok$
   | where (threatname="Bad" OR threatname="Suspicious" OR flagname="Verified Bad") AND (flagname!="Verified Good")
   | search "*$analytics_search_tok$*"
   | eval scant=strptime(scancompletedon, "%Y-%m-%dT%H:%M:%S.%3N"), Scan=targetlist."-".strftime(scant, "%Y%m%d-%H%M")
@@ -251,7 +251,7 @@ NOT [ search index="infocyte" sourcetype="infocytescandata" (type="Process" OR t
       <title>Established Connections</title>
       <table>
         <search>
-          <query>index="infocyte" sourcetype="infocytescandata" (type=Connection) $dash_targetlist_tok$ $dash_scan_tok$
+          <query>index="infocyte" sourcetype="infocytescan" (type=Connection) $dash_targetlist_tok$ $dash_scan_tok$
 | where localaddr != remoteaddr AND threatscore&gt;0
 | search "*$analytics_search_tok$*"
 | eval scant=strptime(scancompletedon, "%Y-%m-%dT%H:%M:%S.%3N"), Scan=targetlist."-".strftime(scant, "%Y%m%d-%H%M")
