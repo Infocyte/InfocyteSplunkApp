@@ -143,11 +143,11 @@ $dash_targetlist_tok$
           <scale type="threshold">0.9</scale>
         </format>
         <format type="color" field="Suspicious">
-          <colorPalette type="list">[#FFFFFF,#ED8440]</colorPalette>
+          <colorPalette type="list">[#FFFFFF,#F7BC38]</colorPalette>
           <scale type="threshold">0.9</scale>
         </format>
         <format type="color" field="Unknown">
-          <colorPalette type="list">[#FFFFFF,#F7BC38]</colorPalette>
+          <colorPalette type="list">[#FFFFFF,#555555]</colorPalette>
           <scale type="threshold">0.9</scale>
         </format>
         <format type="color" field="Good">

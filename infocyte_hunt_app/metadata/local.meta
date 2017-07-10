@@ -20,8 +20,8 @@ modtime = 1475180129.938702500
 access = read : [ * ], write : [ admin, power ]
 export = none
 owner = admin
-version = 6.5.3
-modtime = 1493451164.291498200
+version = 6.6.1
+modtime = 1499712392.389186000
 
 [nav/default]
 access = read : [ * ], write : [ * ]
