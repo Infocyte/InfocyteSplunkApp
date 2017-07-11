@@ -9,17 +9,17 @@
         <latest>now</latest>
       </default>
     </input>
-    <input type="dropdown" token="dash_targetlist_tok" searchWhenChanged="true">
+    <input type="dropdown" token="dash_targetList_tok" searchWhenChanged="true">
       <label>Target List</label>
       <choice value="*">All</choice>
-      <prefix>targetlist="</prefix>
+      <prefix>targetList="</prefix>
       <search>
-        <query>index="infocyte" sourcetype= "infocytescan" type=ScanMetadata | stats values(targetlist) by targetlist</query>
+        <query>index="infocyte" sourcetype= "infocytescan" type=ScanMetadata | stats values(targetList) by targetList</query>
         <earliest>$dash_time_tok.earliest$</earliest>
         <latest>$dash_time_tok.latest$</latest>
       </search>
-      <fieldForLabel>targetlist</fieldForLabel>
-      <fieldForValue>targetlist</fieldForValue>
+      <fieldForLabel>targetList</fieldForLabel>
+      <fieldForValue>targetList</fieldForValue>
       <initialValue>*</initialValue>
       <default>*</default>
       <suffix>"</suffix>
@@ -28,13 +28,13 @@
       <label>Scan Id</label>
       <prefix>(</prefix>
       <suffix>)</suffix>
-      <valuePrefix>scanid="</valuePrefix>
+      <valuePrefix>scanId="</valuePrefix>
       <valueSuffix>"</valueSuffix>
       <delimiter> OR </delimiter>
       <fieldForLabel>scan</fieldForLabel>
-      <fieldForValue>scanid</fieldForValue>
+      <fieldForValue>scanId</fieldForValue>
       <search>
-        <query>index="infocyte" sourcetype="infocytescan" type=ScanMetadata $dash_targetlist_tok$ | eval scandatetime=strftime(_time, "%Y%m%d-%H%M") | eval scan=targetlist."-".scandatetime | sort targetlist, -_time | table scan, scanid</query>
+        <query>index="infocyte" sourcetype="infocytescan" type=ScanMetadata $dash_targetList_tok$ | eval scandatetime=strftime(_time, "%Y%m%d-%H%M") | eval scan=targetList."-".scandatetime | sort targetList, -_time | table scan, scanId</query>
         <earliest>$dash_time_tok.earliest$</earliest>
         <latest>$dash_time_tok.latest$</latest>
       </search>
@@ -47,10 +47,10 @@
       <title>Scan Summary Report</title>
       <table>
         <search>
-          <query>index="infocyte" sourcetype="infocytescan" type=ScanMetadata $dash_targetlist_tok$ $dash_scan_tok$ 
-| eval scant=strptime(scancompletedon, "%Y-%m-%dT%H:%M:%S.%3N"), Scan=targetlist."-".strftime(scant, "%Y%m%d-%H%M") , "Scan Time"=strftime(scant, "%m/%d/%Y - %H:%M:%S ")  
+          <query>index="infocyte" sourcetype="infocytescan" type=ScanMetadata $dash_targetList_tok$ $dash_scan_tok$ 
+| eval scant=strptime(scanCompletedOn, "%Y-%m-%dT%H:%M:%S.%3N"), Scan=targetList."-".strftime(scant, "%Y%m%d-%H%M") , "Scan Time"=strftime(scant, "%m/%d/%Y - %H:%M:%S ")  
 | sort - "Scan Time"
-| rename targetlist as "Target List", hostcount as Hosts, failedhosts as "Failures", totalobjectcount as "Total Objects", compromisedobjects as "Findings" 
+| rename targetList as "Target List", hostCount as Hosts, failedHosts as "Failures", totalObjectCount as "Total Objects", compromisedObjects as "Findings" 
 | table Scan, "Target List", "Scan Time", Hosts, "Failures", "Total Objects", "Findings"</query>
           <earliest>$dash_time_tok.earliest$</earliest>
           <latest>$dash_time_tok.latest$</latest>
@@ -61,11 +61,11 @@
         <option name="rowNumbers">true</option>
         <option name="totalsRow">false</option>
         <option name="wrap">false</option>
-        <format type="color" field="compromisedobjects">
+        <format type="color" field="compromisedObjects">
           <colorPalette type="list">[#FFFFFF,#D93F3C]</colorPalette>
           <scale type="threshold">0.9</scale>
         </format>
-        <format type="number" field="compromisedobjects">
+        <format type="number" field="compromisedObjects">
           <option name="precision">0</option>
         </format>
         <format type="color" field="Compromised Objects">
@@ -87,9 +87,9 @@
       <viz type="infocyte_hunt_app.calendar_heatmap">
         <search>
           <query>index="infocyte" sourcetype="infocytescan" type=ScanMetadata 
-$dash_targetlist_tok$
+$dash_targetList_tok$
 $dash_scan_tok$ 
-| eval weight=case(compromisedhosts &gt; 0, 2, hostcount &gt; 0,0) | timechart span=1d max(weight) as Scans</query>
+| eval weight=case(compromisedHosts &gt; 0, 2, hostCount &gt; 0,0) | timechart span=1d max(weight) as Scans</query>
           <earliest>-6mon@mon</earliest>
           <latest>now</latest>
         </search>
@@ -111,10 +111,10 @@ $dash_scan_tok$
       <title>Operating System Statistics</title>
       <table>
         <search>
-          <query>index="infocyte" sourcetype= "infocytescandata" type=Host  failed=false $dash_scan_tok$ 
-$dash_targetlist_tok$
-| rename osversion as "Operating System", architecture as Arch
-| stats values(servicepack) as "Service Packs", dc(id) as "Hosts" by "Operating System", Arch 
+          <query>index="infocyte" sourcetype= "infocytescan" type=Host  failed=false $dash_scan_tok$ 
+$dash_targetList_tok$
+| rename osVersion as "Operating System", architecture as Arch
+| stats values(servicePack) as "Service Packs", dc(id) as "Hosts" by "Operating System", Arch 
 | sort - "Hosts"</query>
           <earliest>$dash_time_tok.earliest$</earliest>
           <latest>$dash_time_tok.latest$</latest>
@@ -125,9 +125,9 @@ $dash_targetlist_tok$
       <title>Threat Status Distribution by Scan Id</title>
       <table>
         <search>
-          <query>index="infocyte" sourcetype="infocytescan" type=ScanMetadata $dash_targetlist_tok$ $dash_scan_tok$ 
-| eval scant=strptime(scancompletedon, "%Y-%m-%dT%H:%M:%S.%3N"), Scan=targetlist."-".strftime(scant, "%Y%m%d-%H%M") , "Scan Time"=strftime(scant, "%m/%d/%Y - %H:%M:%S (UTC)") 
-| rename targetlist as "Target List", hostcount as Hosts, totalobjectcount as "Total Objects", compromisedobjects as "Compromised Objects",good as Good, lowrisk as "Low Risk", unknown as Unknown, suspicious as Suspicious, bad as Bad 
+          <query>index="infocyte" sourcetype="infocytescan" type=ScanMetadata $dash_targetList_tok$ $dash_scan_tok$ 
+| eval scant=strptime(scanCompletedOn, "%Y-%m-%dT%H:%M:%S.%3N"), Scan=targetList."-".strftime(scant, "%Y%m%d-%H%M") , "Scan Time"=strftime(scant, "%m/%d/%Y - %H:%M:%S (UTC)") 
+| rename targetList as "Target List", hostCount as Hosts, totalObjectCount as "Total Objects", compromisedObjects as "Compromised Objects",good as Good, lowRisk as "Low Risk", unknown as Unknown, suspicious as Suspicious, bad as Bad 
 | sort - _time 
 | table Scan, Hosts, Good, "Low Risk", Unknown, Suspicious, Bad</query>
           <earliest>$dash_time_tok.earliest$</earliest>
@@ -166,11 +166,11 @@ $dash_targetlist_tok$
       <title>Target List Summary Report</title>
       <table>
         <search>
-          <query>index="infocyte" sourcetype="infocytescan" type=ScanMetadata $dash_targetlist_tok$ $dash_scan_tok$  
+          <query>index="infocyte" sourcetype="infocytescan" type=ScanMetadata $dash_targetList_tok$ $dash_scan_tok$  
 | sort -_time 
-| eval scant=strptime(scancompletedon, "%Y-%m-%dT%H:%M:%S.%3N"), Scan=targetlist."-".strftime(scant, "%Y%m%d-%H%M") , "Scan Time"=strftime(scant, "%m/%d/%Y - %H:%M:%S")  
-| rename targetlist as "Target List" 
-| stats sparkline(avg(hostcount)) as "Sparkline(hosts)", dc(scanid) as Scans, avg(hostcount) as "Ave Hosts", avg(totalobjectcount) as "Ave Objects", latest("Scan Time") as "Last Scan", latest(failedhosts) as "Failures (last)", latest(compromisedobjects) as "Findings (last)" by "Target List"</query>
+| eval scant=strptime(scanCompletedOn, "%Y-%m-%dT%H:%M:%S.%3N"), Scan=targetList."-".strftime(scant, "%Y%m%d-%H%M") , "Scan Time"=strftime(scant, "%m/%d/%Y - %H:%M:%S")  
+| rename targetList as "Target List" 
+| stats sparkline(avg(hostCount)) as "Sparkline(hosts)", dc(scanId) as Scans, avg(hostCount) as "Ave Hosts", avg(totalObjectCount) as "Ave Objects", latest("Scan Time") as "Last Scan", latest(failedHosts) as "Failures (last)", latest(compromisedObjects) as "Findings (last)" by "Target List"</query>
           <earliest>$dash_time_tok.earliest$</earliest>
           <latest>$dash_time_tok.latest$</latest>
         </search>
@@ -180,11 +180,11 @@ $dash_targetlist_tok$
         <option name="rowNumbers">false</option>
         <option name="totalsRow">true</option>
         <option name="wrap">true</option>
-        <format type="color" field="compromisedobjects">
+        <format type="color" field="compromisedObjects">
           <colorPalette type="list">[#FFFFFF,#D93F3C]</colorPalette>
           <scale type="threshold">0.9</scale>
         </format>
-        <format type="number" field="compromisedobjects">
+        <format type="number" field="compromisedObjects">
           <option name="precision">0</option>
         </format>
         <format type="color" field="Compromised Objects">
@@ -212,8 +212,8 @@ $dash_targetlist_tok$
       <viz type="infocyte_hunt_app.calendar_heatmap">
         <search>
           <query>index="infocyte" sourcetype="infocytescan" type=ScanMetadata 
-$dash_targetlist_tok$
-| eval weight=case(compromisedhosts &gt; 0, 2, hostcount &gt; 0,0) | timechart span=1d max(weight) as Scans by targetlist</query>
+$dash_targetList_tok$
+| eval weight=case(compromisedHosts &gt; 0, 2, hostCount &gt; 0,0) | timechart span=1d max(weight) as Scans by targetList</query>
           <earliest>-6mon@mon</earliest>
           <latest>now</latest>
         </search>

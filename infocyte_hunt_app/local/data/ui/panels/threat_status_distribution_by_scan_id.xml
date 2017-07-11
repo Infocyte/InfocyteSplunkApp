@@ -2,7 +2,7 @@
   <title>Threat Status Distribution by Scan Id</title>
   <table>
     <search>
-      <query>index="infocyte" sourcetype="infocytescan" type=ScanMetadata $dash_targetlist_tok$ $dash_scan_tok$ | eval "Scan Time"=strftime(_time, "%Y/%m/%d %H:%M %z"), "Scan Id"=targetlist."-".strftime(_time, "%Y%m%d-%H%M-%S") | rename targetlist as "Target List", hostcount as Hosts, totalobjectcount as "Total Objects", compromisedobjects as "Compromised Objects",good as Good, lowrisk as "Low Risk", unknown as Unknown, suspicious as Suspicious, bad as Bad | sort - _time | table "Scan Id", Hosts, Good, "Low Risk", Unknown, Suspicious, Bad</query>
+      <query>index="infocyte" sourcetype="infocytescan" type=ScanMetadata $dash_targetList_tok$ $dash_scan_tok$ | eval "Scan Time"=strftime(_time, "%Y/%m/%d %H:%M %z"), "Scan Id"=targetList."-".strftime(_time, "%Y%m%d-%H%M-%S") | rename targetList as "Target List", hostCount as Hosts, totalObjectCount as "Total Objects", compromisedObjects as "Compromised Objects",good as Good, lowRisk as "Low Risk", unknown as Unknown, suspicious as Suspicious, bad as Bad | sort - _time | table "Scan Id", Hosts, Good, "Low Risk", Unknown, Suspicious, Bad</query>
       <earliest>$dash_time_tok.earliest$</earliest>
       <latest>$dash_time_tok.latest$</latest>
     </search>

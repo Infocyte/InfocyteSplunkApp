@@ -2,7 +2,7 @@
   <title>Target List Summary Report</title>
   <table>
     <search>
-      <query>index="infocyte" sourcetype="infocytescan" type=ScanMetadata $dash_targetlist_tok$ $dash_scan_tok$  | sort -_time | eval "Scan Time"=strftime(_time, "%Y/%m/%d %H:%M %z"), "Scan Id"=targetlist."-".strftime(_time, "%Y%m%d-%H%M-%S") | rename targetlist as "Target List" | stats dc(scanid) as Scans, avg(hostcount) as "Ave Hosts", avg(totalobjectcount) as "Ave Objects", latest("Scan Time") as "Last Scan", latest(failedhosts) as "Failures (last scan)", latest(compromisedobjects) as "Compromised Objects (last scan)" by "Target List"</query>
+      <query>index="infocyte" sourcetype="infocytescan" type=ScanMetadata $dash_targetList_tok$ $dash_scan_tok$  | sort -_time | eval "Scan Time"=strftime(_time, "%Y/%m/%d %H:%M %z"), "Scan Id"=targetList."-".strftime(_time, "%Y%m%d-%H%M-%S") | rename targetList as "Target List" | stats dc(scanId) as Scans, avg(hostCount) as "Ave Hosts", avg(totalObjectCount) as "Ave Objects", latest("Scan Time") as "Last Scan", latest(failedhosts) as "Failures (last scan)", latest(compromisedObjects) as "Compromised Objects (last scan)" by "Target List"</query>
       <earliest>$dash_time_tok.earliest$</earliest>
       <latest>$dash_time_tok.latest$</latest>
     </search>
@@ -12,11 +12,11 @@
     <option name="rowNumbers">false</option>
     <option name="totalsRow">true</option>
     <option name="wrap">true</option>
-    <format type="color" field="compromisedobjects">
+    <format type="color" field="compromisedObjects">
       <colorPalette type="list">[#FFFFFF,#D93F3C]</colorPalette>
       <scale type="threshold">0.9</scale>
     </format>
-    <format type="number" field="compromisedobjects">
+    <format type="number" field="compromisedObjects">
       <option name="precision">0</option>
     </format>
     <format type="color" field="Compromised Objects">
