@@ -85,11 +85,12 @@
     <panel>
       <title>Global Scan Calendar</title>
       <viz type="infocyte_hunt_app.calendar_heatmap">
+        <title>Black = no scan | Blue = clean scan | Red = compromised scan</title>
         <search>
-          <query>index="infocyte" sourcetype="infocytescan" type=ScanMetadata 
-$dash_targetList_tok$
-$dash_scan_tok$ 
-| eval weight=case(compromisedHosts &gt; 0, 2, hostCount &gt; 0,0) | timechart span=1d max(weight) as Scans</query>
+          <query>index="infocyte" sourcetype="infocytescan" type=ScanMetadata
+targetList="*"
+(scanId="*") 
+| eval weight=case(compromisedObjects &gt; 0, 1, compromisedObjects = 0,0) | timechart span=1d max(weight) as Scans</query>
           <earliest>-6mon@mon</earliest>
           <latest>now</latest>
         </search>
@@ -210,6 +211,7 @@ $dash_targetList_tok$
     <panel>
       <title>Scan Calendar by Target List</title>
       <viz type="infocyte_hunt_app.calendar_heatmap">
+        <title>Black = no scan | Blue = clean scan | Red = compromised scan</title>
         <search>
           <query>index="infocyte" sourcetype="infocytescan" type=ScanMetadata 
 $dash_targetList_tok$
