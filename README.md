@@ -3,7 +3,7 @@ Setup HUNT Server
  - Install Infocyte HUNT
  
 Install Infocyte HUNT App in Splunk 
- - Copy app folder to C:\Program Files\Splunk\etc\app\
+ - Copy app the infocyte_hunt_app folder to C:\Program Files\Splunk\etc\app\
  - Restart Splunk
  
 Pull up the HTTP Event Collector 
