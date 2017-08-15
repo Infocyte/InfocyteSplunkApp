@@ -2,7 +2,7 @@
   <title>Scan Summary Report</title>
   <table>
     <search>
-      <query>index="infocyte" sourcetype="infocytescan" type=ScanMetadata $dash_targetlist_tok$ $dash_scan_tok$ | sort -_time | eval "Scan Time"=strftime(_time, "%Y/%m/%d %H:%M %z"), "Scan Id"=targetlist."-".strftime(_time, "%Y%m%d-%H%M-%S") | rename targetlist as "Target List", hostcount as Hosts, failedhosts as "Failures", totalobjectcount as "Total Objects", compromisedobjects as "Compromised Objects" | table "Scan Id", "Target List", "Scan Time", Hosts, "Failures", "Total Objects", "Compromised Objects"</query>
+      <query>index="infocyte" sourcetype="infocytescan" type=ScanMetadata $dash_targetList_tok$ $dash_scan_tok$ | sort -_time | eval "Scan Time"=strftime(_time, "%Y/%m/%d %H:%M %z"), "Scan Id"=targetList."-".strftime(_time, "%Y%m%d-%H%M-%S") | rename targetList as "Target List", hostCount as Hosts, failedhosts as "Failures", totalObjectCount as "Total Objects", compromisedObjects as "Compromised Objects" | table "Scan Id", "Target List", "Scan Time", Hosts, "Failures", "Total Objects", "Compromised Objects"</query>
       <earliest>$dash_time_tok.earliest$</earliest>
       <latest>$dash_time_tok.latest$</latest>
     </search>
@@ -12,11 +12,11 @@
     <option name="rowNumbers">true</option>
     <option name="totalsRow">false</option>
     <option name="wrap">false</option>
-    <format type="color" field="compromisedobjects">
+    <format type="color" field="compromisedObjects">
       <colorPalette type="list">[#FFFFFF,#D93F3C]</colorPalette>
       <scale type="threshold">0.9</scale>
     </format>
-    <format type="number" field="compromisedobjects">
+    <format type="number" field="compromisedObjects">
       <option name="precision">0</option>
     </format>
     <format type="color" field="Compromised Objects">

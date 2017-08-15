@@ -369,30 +369,11 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 	            }, this);
 
-	            // Graph tooltips
-	            // We use the boodtrap tooltip attached to the body
-	            // and pull the text out of the library tooltip.
-	            var tooltipContainer = this.tooltipContainer;
-	            this.$el.on('mouseover', '.cal-heatmap-container .graph g', function(e) {
-	                
-	                var title = $(e.target).closest('title');
-	                $(e.target).tooltip({
-	                    animation: false,
-	                    title: $('.ch-tooltip').text(),
-	                    'container': tooltipContainer,
-	                })
-	                .tooltip('show');
-
-	            });
-	            this.$el.on('mouseout', '.cal-heatmap-container .graph g', function(e) {
-	                $(e.target).tooltip('destroy');
-	            });
-
 	            // Legend tooltips
 	            this.$el.on('mouseover', '.cal-heatmap-container .graph-legend rect', function(e) {
 	                $(e.target).tooltip({
 	                    animation: false,
-	                    title: $(e.target).text(),
+	                    title: "Blue = no compromised scans\nRed = compromised scan",
 	                    'container': tooltipContainer,
 	                })
 	                .tooltip('show');
