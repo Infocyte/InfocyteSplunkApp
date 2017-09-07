@@ -1,6 +1,6 @@
 <form>
   <label>Infocyte HUNT Dashboard</label>
-  <description>Dashboard for Infocyte HUNT scan data</description>
+  <description>Dashboard for Infocyte HUNT scan summaries. Select the desired time span and target lists you wish to view summary data for.</description>
   <fieldset submitButton="true" autoRun="true">
     <input type="time" token="dash_time_tok" searchWhenChanged="true">
       <label>Time Span</label>
@@ -84,8 +84,11 @@
     </panel>
     <panel>
       <title>Global Scan Calendar</title>
+        <html>
+          <p>Days on which scans were conducted are shown below. If a scan took place that day it will be either Red or Blue depending on whether a compromise was found.</p>
+          <p>Black = no scan | Blue = clean scan | Red = compromised scan</p>
+        </html>
       <viz type="infocyte_hunt_app.calendar_heatmap">
-        <title>Black = no scan | Blue = clean scan | Red = compromised scan</title>
         <search>
           <query>index="infocyte" sourcetype="infocytescan" type=ScanMetadata
 targetList="*"
@@ -94,7 +97,7 @@ targetList="*"
           <earliest>-6mon@mon</earliest>
           <latest>now</latest>
         </search>
-        <option name="height">273</option>
+        <option name="height">272</option>
         <option name="infocyte_hunt_app.calendar_heatmap.cellPadding">1</option>
         <option name="infocyte_hunt_app.calendar_heatmap.cellSize">16</option>
         <option name="infocyte_hunt_app.calendar_heatmap.cellStyle">square</option>
@@ -124,6 +127,7 @@ $dash_targetList_tok$
     </panel>
     <panel>
       <title>Threat Status Distribution by Scan Id</title>
+      <html><p>Note: Data is static within Splunk and will not be updated if reputation or scores change in the Infocyte HUNT application.</p></html>
       <table>
         <search>
           <query>index="infocyte" sourcetype="infocytescan" type=ScanMetadata $dash_targetList_tok$ $dash_scan_tok$ 
@@ -210,8 +214,11 @@ $dash_targetList_tok$
     </panel>
     <panel>
       <title>Scan Calendar by Target List</title>
+      <html>
+        <p>Days on which scans were conducted for each target list are shown below.</p>
+        <p>Black = no scan | Blue = clean scan | Red = compromised scan</p>
+      </html>
       <viz type="infocyte_hunt_app.calendar_heatmap">
-        <title>Black = no scan | Blue = clean scan | Red = compromised scan</title>
         <search>
           <query>index="infocyte" sourcetype="infocytescan" type=ScanMetadata 
 $dash_targetList_tok$

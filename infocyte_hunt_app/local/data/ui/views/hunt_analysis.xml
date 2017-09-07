@@ -1,6 +1,6 @@
 <form>
   <label>HUNT Analysis</label>
-  <description>Used to display and search Infocyte HUNT scan data over time</description>
+  <description>Display and search Infocyte HUNT scan data. Select your time window and target list to aggregated display data for those scans.</description>
   <fieldset submitButton="true" autoRun="true">
     <input type="time" token="dash_time_tok" searchWhenChanged="true">
       <label>Time Span</label>
@@ -49,6 +49,7 @@
   <row>
     <panel>
       <title>AV Coverage</title>
+      <html><p>Utilizes lookup tables for known security agent executables to display coverage statistics. To add custom executable names, modify the lookup table within this app's directory.</p></html>
       <table>
         <search>
           <query>index="infocyte" sourcetype="infocytescan" (type="Process" OR type="Autostart") $dash_targetList_tok$ $dash_scan_tok$ 
@@ -65,6 +66,7 @@
     </panel>
     <panel>
       <title>No AV</title>
+      <html><p>Utilizes lookup tables for known security agent executables to list systems without any AV agents.</p></html>
       <table>
         <search>
           <query>index="infocyte" sourcetype="infocytescan" (type="Process" OR type="Autostart") $dash_targetList_tok$ $dash_scan_tok$ 
@@ -81,6 +83,10 @@ NOT [ search index="infocyte" sourcetype="infocytescan" (type="Process" OR type=
   <row>
     <panel>
       <title>Malicious Volatile Memory Injects</title>
+      <html>
+        <p>Memory Injects are independant executable applications or modules which are injected into the memory space of another application or completely overwrite the other process after execution. The injections are not registered or known by the host operating system. Infocyte uses live volatile memory scans with proprietary techniques to identify and extract these injected executable code sections so they can be analyzed independantly of the injected process.</p>
+        <p>Regardless of AV hits and scores, injections in standard Windows or Linux processes are almost always malicious unless the origin is a security product with known injections. False positives here may occur for .NET and JAVA applications which will have injections into their own process due to in-memory compilation, also known as Just-In-Time (JIT) compile, and can be safely ignored if no detection engine flags it as malware.</p>
+      </html>
       <table>
         <search>
           <query>index="infocyte" sourcetype= "infocytescan" type=MemoryObject $dash_targetList_tok$ $dash_scan_tok$
@@ -88,8 +94,8 @@ NOT [ search index="infocyte" sourcetype="infocytescan" (type="Process" OR type=
 | search "*$analytics_search_tok$*"
 | eval scant=strptime(scanCompletedOn, "%Y-%m-%dT%H:%M:%S.%3N"), Scan=targetList."-".strftime(scant, "%Y%m%d-%H%M")
 | sort - Scan, - threatScore
-| table Scan, hostname, ip, pid, processName, processPath, size, address, protection, avPositives, synapse, threatScore, threatName
-| fieldformat path=replace(path,"^(.{40}).*","\1...")
+| table Scan, hostname, ip, pid, processName, size, protection, avPositives, synapse, threatScore, threatName
+| fieldformat processPath=replace(processPath,"^(.{30}).*","\1...")
 | fieldformat size=size/1000
 | rename avPositives as av</query>
           <earliest>$dash_time_tok.earliest$</earliest>
@@ -121,6 +127,9 @@ NOT [ search index="infocyte" sourcetype="infocytescan" (type="Process" OR type=
   <row>
     <panel>
       <title>Malicious Active Processes, Modules, &amp; Drivers</title>
+      <html>
+        <p>Active applications and code active during scans.</p> 
+        <p>avPositives = number of AV engines that triggered for malware, synapse = Infocyte coorelation score with backdoors and remote access tool type implants, scoring = -1 (like malware) to +1 (like goodware).</p></html>
       <table>
         <search>
           <query>index="infocyte" sourcetype="infocytescan" (type="Process" OR type="Module" OR type="Driver") $dash_targetList_tok$ $dash_scan_tok$
@@ -128,9 +137,8 @@ NOT [ search index="infocyte" sourcetype="infocytescan" (type="Process" OR type=
 | search "*$analytics_search_tok$*"
 | eval scant=strptime(scanCompletedOn, "%Y-%m-%dT%H:%M:%S.%3N"), Scan=targetList."-".strftime(scant, "%Y%m%d-%H%M")
 | sort - Scan, - threatScore
-| table Scan, hostname, ip, type,  name, path, sha1, size, account, accountPriv, occurrences, avPositives, synapse, threatScore, threatName
-| fieldformat path=replace(path,"^(.{40}).*","\1...")
-| fieldformat sha1=replace(sha1,".*(.{10})$","...\1")
+| table Scan, hostname, ip, type,  name, path, size, account, accountPriv, occurrences, avPositives, synapse, threatScore, threatName
+| fieldformat path=replace(path,"^(.{30}).*","\1...")
 | fieldformat size=size/1024
 | rename avPositives as av, accountPriv as priv</query>
           <earliest>$dash_time_tok.earliest$</earliest>
@@ -166,6 +174,7 @@ NOT [ search index="infocyte" sourcetype="infocytescan" (type="Process" OR type=
   <row>
     <panel>
       <title>Legitimate Tools Audit</title>
+      <html><p>Legitimate admin tools which are used by administrators can also be used maliciously by an attacker once they have elevated their permissions to that of an admin or stolen an administrator's account.  It is recommended to review these applications for use of ones not typically seen in your enviroment or for presence/use on any system other than an admininstrator's workstations.</p></html>
       <table>
         <search>
           <query>index="infocyte" sourcetype="infocytescan" type="Process" $dash_targetList_tok$ $dash_scan_tok$ [ | inputlookup legittools | fields + toolname  | rename toolname as search]
@@ -215,9 +224,9 @@ NOT [ search index="infocyte" sourcetype="infocytescan" (type="Process" OR type=
   | search "*$analytics_search_tok$*"
   | eval scant=strptime(scanCompletedOn, "%Y-%m-%dT%H:%M:%S.%3N"), Scan=targetList."-".strftime(scant, "%Y%m%d-%H%M")
   | sort - Scan, - threatScore
-  | table Scan, hostname, ip, autostarttype, name, sha1, size, regPath, regValue, occurrences, avPositives, synapse, threatScore, threatName
+  | table Scan, hostname, ip, autostarttype, name, size, regPath, regValue, occurrences, avPositives, synapse, threatScore, threatName
   | fieldformat regPath=replace(regPath,".*(.{30})$","...\1")
-  | fieldformat sha1=replace(sha1,".*(.{16})$","...\1")
+  | fieldformat regValue=replace(regValue,".*(.{30})$","...\1")
   | fieldformat size=size/1024
   | rename avPositives as av</query>
           <earliest>$dash_time_tok.earliest$</earliest>
